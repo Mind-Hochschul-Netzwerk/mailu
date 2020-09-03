@@ -11,7 +11,7 @@ services:
     image: redis:alpine
     restart: always
     volumes:
-      - "/mailu/redis:/data"
+      - "./docker/volumes/mailu/redis:/data"
     networks:
       - backend
     
@@ -31,13 +31,11 @@ services:
       - "0.0.0.0:143:143"
       - "0.0.0.0:993:993"
     volumes:
-      - "/mailu/certs:/certs"
-      - "/mailu/overrides/nginx:/overrides"
+      - "./docker/volumes/mailu/certs:/certs"
+      - "./docker/volumes/mailu/overrides/nginx:/overrides"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.mailu.rule=Host(`mailu.mhn.e-nigma.xyz`)
-      - traefik.http.routers.mailu.tls=true
-      - traefik.http.routers.mailu.tls.certresolver=myresolver
+      - traefik.http.routers.mailu.rule=Host(`mailu.docker.localhost`)
       - traefik.http.services.mailu.loadbalancer.server.port=80
     networks:
       - traefik
@@ -48,20 +46,20 @@ services:
     restart: always
     env_file: mailu.env
     volumes:
-      - "/mailu/data:/data"
-      - "/mailu/dkim:/dkim"
+      - "./docker/volumes/mailu/data:/data"
+      - "./docker/volumes/mailu/dkim:/dkim"
     depends_on:
       - redis
     networks:  
       - backend
 
   imap:
-    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}dovecot:${MAILU_VERSION:-1.7}
+    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}dovecot:${MAILU_VERSION:-1.7
     restart: always
     env_file: mailu.env
     volumes:
-      - "/mailu/mail:/mail"
-      - "/mailu/overrides:/overrides"
+      - "./docker/volumes/mailu/mail:/mail"
+      - "./docker/volumes/mailu/overrides:/overrides"
     depends_on:
       - front
     networks:  
@@ -72,7 +70,7 @@ services:
     restart: always
     env_file: mailu.env
     volumes:
-      - "/mailu/overrides:/overrides"
+      - "./docker/volumes/mailu/overrides:/overrides"
     depends_on:
       - front
     networks:  
@@ -83,9 +81,9 @@ services:
     restart: always
     env_file: mailu.env
     volumes:
-      - "/mailu/filter:/var/lib/rspamd"
-      - "/mailu/dkim:/dkim"
-      - "/mailu/overrides/rspamd:/etc/rspamd/override.d"
+      - "./docker/volumes/mailu/filter:/var/lib/rspamd"
+      - "./docker/volumes/mailu/dkim:/dkim"
+      - "./docker/volumes/mailu/overrides/rspamd:/etc/rspamd/override.d"
     depends_on:
       - front
     networks:  
