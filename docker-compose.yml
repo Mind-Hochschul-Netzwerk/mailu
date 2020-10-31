@@ -2,7 +2,7 @@
 # Please read the documentation before attempting any change.
 # Generated for compose flavor
 
-version: "2.2"
+version: "3.5"
 
 services:
   # External dependencies
@@ -10,9 +10,9 @@ services:
     image: redis:alpine
     restart: always
     volumes:
-      - "./docker/volumes/mailu/redis:/data"
+      - "${VOLUMES_DIR}/mailu/redis:/data"
     networks:
-      - backend
+      - mailu
     
   # Core services
   front:
@@ -103,8 +103,8 @@ services:
       - mailu
 
 networks:
-  mail:
-    name: mail
+  mailu:
+    name: mailu
   traefik:
     name: traefik
     external: true

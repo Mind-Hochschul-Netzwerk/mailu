@@ -4,7 +4,7 @@ mail server and webmail
 
 ## run
 
-Save config.env.sample as config.env
+Save config.env.sample as config.env and env.sampel als .env
 
     $ docker-compose up -d
 
