@@ -2,10 +2,9 @@
 # Please read the documentation before attempting any change.
 # Generated for compose flavor
 
-version: '2.2'
+version: "2.2"
 
 services:
-
   # External dependencies
   redis:
     image: redis:alpine
@@ -19,7 +18,9 @@ services:
   front:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}nginx:${MAILU_VERSION:-1.7}
     restart: always
-    env_file: mailu.env
+    env_file:
+      - mailu.env
+      - config.env
     logging:
       driver: json-file
     ports:
@@ -31,75 +32,82 @@ services:
       - "0.0.0.0:143:143"
       - "0.0.0.0:993:993"
     volumes:
-      - "./docker/volumes/mailu/certs:/certs"
-      - "./docker/volumes/mailu/overrides/nginx:/overrides"
+      - "${VOLUMES_DIR}/mailu/certs:/certs"
+      - "${VOLUMES_DIR}/mailu/overrides/nginx:/overrides"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.mailu.rule=Host(`mailu.docker.localhost`)
+      - traefik.docker.network=traefik
+      - traefik.http.routers.mailu.rule=Host(`mailu.${DOMAINNAME}`)
+      - traefik.http.routers.mailu.tls=true
+      - traefik.http.routers.mailu.tls.certresolver=myresolver
+      - traefik.http.routers.mailu.middlewares=secheader
       - traefik.http.services.mailu.loadbalancer.server.port=80
     networks:
       - traefik
-      - backend
+      - mailu
 
   admin:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}admin:${MAILU_VERSION:-1.7}
     restart: always
-    env_file: mailu.env
+    env_file:
+      - mailu.env
+      - config.env
     volumes:
-      - "./docker/volumes/mailu/data:/data"
-      - "./docker/volumes/mailu/dkim:/dkim"
+      - "${VOLUMES_DIR}/mailu/data:/data"
+      - "${VOLUMES_DIR}/mailu/dkim:/dkim"
     depends_on:
       - redis
     networks:  
-      - backend
+      - mailu
 
   imap:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}dovecot:${MAILU_VERSION:-1.7}
     restart: always
-    env_file: mailu.env
+    env_file:
+      - mailu.env
+      - config.env
     volumes:
-      - "./docker/volumes/mailu/mail:/mail"
-      - "./docker/volumes/mailu/overrides:/overrides"
+      - "${VOLUMES_DIR}/mailu/mail:/mail"
+      - "${VOLUMES_DIR}/mailu/overrides:/overrides"
     depends_on:
       - front
     networks:  
-      - backend
+      - mailu
 
   smtp:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}postfix:${MAILU_VERSION:-1.7}
     restart: always
-    env_file: mailu.env
+    env_file:
+      - mailu.env
+      - config.env
     volumes:
-      - "./docker/volumes/mailu/overrides:/overrides"
+      - "${VOLUMES_DIR}/mailu/overrides:/overrides"
     depends_on:
       - front
     networks:  
-      - backend
+      - mailu
 
   antispam:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}rspamd:${MAILU_VERSION:-1.7}
     restart: always
-    env_file: mailu.env
+    env_file:
+      - mailu.env
+      - config.env
     volumes:
-      - "./docker/volumes/mailu/filter:/var/lib/rspamd"
-      - "./docker/volumes/mailu/dkim:/dkim"
-      - "./docker/volumes/mailu/overrides/rspamd:/etc/rspamd/override.d"
+      - "${VOLUMES_DIR}/mailu/filter:/var/lib/rspamd"
+      - "${VOLUMES_DIR}/mailu/dkim:/dkim"
+      - "${VOLUMES_DIR}/mailu/overrides/rspamd:/etc/rspamd/override.d"
     depends_on:
       - front
     networks:  
-      - backend
+      - mailu
 
 networks:
-  backend:
-    name: backend
+  mail:
+    name: mail
   traefik:
     name: traefik
-
-  # Optional services
-
-
-
-  # Webmail
+    external: true
 
 
 #networks:

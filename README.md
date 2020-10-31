@@ -4,6 +4,8 @@ mail server and webmail
 
 ## run
 
+Save config.env.sample as config.env
+
     $ docker-compose up -d
 
 Make sure the `traefik` container is running.
