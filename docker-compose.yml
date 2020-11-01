@@ -16,13 +16,14 @@ services:
     
   certdumper:
     restart: always
-    image: mailu/traefik-certdumper:${MAILU_VERSION:-1.7}
+    image: mailu/traefik-certdumper:${MAILU_VERSION:-master}
     env_file:
       - config.env
     environment:
     # Make sure this is the same as the main=-domain in traefik.toml
     # !!! Also don’t forget to add "TRAEFIK_DOMAIN=[...]" to your .env!
       - DOMAIN=${DOMAINNAME}
+      - TRAEFIK_VERSION=v2
     volumes:
     # Folder, which contains the acme.json
       - "${TRAEFIK_ACME_DIR}:/traefik"
