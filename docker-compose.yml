@@ -15,8 +15,8 @@ services:
       - mailu
     
   certdumper:
-    restart: always
     image: mailu/traefik-certdumper:${MAILU_VERSION:-master}
+    restart: unless-stopped
     env_file:
       - config.env
     environment:
