@@ -5,6 +5,7 @@ mail server and webmail
 ## run
 
 Save config.env.sample as config.env and env.sampel als .env
+Change ´TRAEFIK_ACME_DIR´ to your traefik acme dir.
 
     $ docker-compose up -d
 
