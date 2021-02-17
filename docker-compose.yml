@@ -13,21 +13,21 @@ services:
       - "${VOLUMES_DIR}/mailu/redis:/data"
     networks:
       - mailu
-    
+
   certdumper:
     restart: always
     image: mailu/traefik-certdumper:${MAILU_VERSION:-master}
     env_file:
       - config.env
     environment:
-    # Make sure this is the same as the main=-domain in traefik.toml
-    # !!! Also don’t forget to add "TRAEFIK_DOMAIN=[...]" to your .env!
+      # Make sure this is the same as the main=-domain in traefik.toml
+      # !!! Also don’t forget to add "TRAEFIK_DOMAIN=[...]" to your .env!
       - DOMAIN=${DOMAINNAME}
       - TRAEFIK_VERSION=v2
     volumes:
-    # Folder, which contains the acme.json
+      # Folder, which contains the acme.json
       - "${TRAEFIK_ACME_DIR}:/traefik"
-    # Folder, where cert.pem and key.pem will be written
+      # Folder, where cert.pem and key.pem will be written
       - "${VOLUMES_DIR}/mailu/certs:/output"
 
   # Core services
@@ -53,11 +53,11 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik
-      - traefik.http.routers.mailu.rule=Host(`mailu.${DOMAINNAME}`)
+      - traefik.http.routers.mailu.rule=Host(`mailu.${DOMAINNAME}`) || Host(`imap.${DOMAINNAME}`) || Host(`smtp.${DOMAINNAME}`)
       - traefik.http.routers.mailu.tls=true
       - traefik.http.routers.mailu.tls.certresolver=myresolver
-      - traefik.http.routers.mailu.tls.domains[0].main=${DOMAINNAME}
-      - traefik.http.routers.mailu.tls.domains[0].sans=mailu.${DOMAINNAME}
+      # - traefik.http.routers.mailu.tls.domains[0].main=${DOMAINNAME}
+      # - traefik.http.routers.mailu.tls.domains[0].sans=*.${DOMAINNAME}
       - traefik.http.routers.mailu.middlewares=secheader
       - traefik.http.services.mailu.loadbalancer.server.port=80
     networks:
@@ -75,7 +75,7 @@ services:
       - "${VOLUMES_DIR}/mailu/dkim:/dkim"
     depends_on:
       - redis
-    networks:  
+    networks:
       - mailu
 
   imap:
@@ -89,7 +89,7 @@ services:
       - "${VOLUMES_DIR}/mailu/overrides:/overrides"
     depends_on:
       - front
-    networks:  
+    networks:
       - mailu
 
   smtp:
@@ -102,7 +102,7 @@ services:
       - "${VOLUMES_DIR}/mailu/overrides:/overrides"
     depends_on:
       - front
-    networks:  
+    networks:
       - mailu
 
   antispam:
@@ -117,17 +117,20 @@ services:
       - "${VOLUMES_DIR}/mailu/overrides/rspamd:/etc/rspamd/override.d"
     depends_on:
       - front
-    networks:  
+    networks:
       - mailu
 
 networks:
   mailu:
     name: mailu
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/16
   traefik:
     name: traefik
     external: true
-
-
 #networks:
 #  default:
 #    driver: bridge
