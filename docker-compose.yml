@@ -8,15 +8,15 @@ services:
   # External dependencies
   redis:
     image: redis:alpine
-    restart: always
+    restart: unless-stopped
     volumes:
       - "${VOLUMES_DIR}/mailu/redis:/data"
     networks:
       - mailu
 
   certdumper:
-    restart: always
     image: mailu/traefik-certdumper:${MAILU_VERSION:-master}
+    restart: unless-stopped
     env_file:
       - config.env
     environment:
@@ -33,7 +33,7 @@ services:
   # Core services
   front:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}nginx:${MAILU_VERSION:-1.7}
-    restart: always
+    restart: unless-stopped
     env_file:
       - mailu.env
       - config.env
@@ -66,7 +66,7 @@ services:
 
   admin:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}admin:${MAILU_VERSION:-1.7}
-    restart: always
+    restart: unless-stopped
     env_file:
       - mailu.env
       - config.env
@@ -80,7 +80,7 @@ services:
 
   imap:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}dovecot:${MAILU_VERSION:-1.7}
-    restart: always
+    restart: unless-stopped
     env_file:
       - mailu.env
       - config.env
@@ -94,7 +94,7 @@ services:
 
   smtp:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}postfix:${MAILU_VERSION:-1.7}
-    restart: always
+    restart: unless-stopped
     env_file:
       - mailu.env
       - config.env
@@ -107,7 +107,7 @@ services:
 
   antispam:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}rspamd:${MAILU_VERSION:-1.7}
-    restart: always
+    restart: unless-stopped
     env_file:
       - mailu.env
       - config.env
@@ -131,11 +131,3 @@ networks:
   traefik:
     name: traefik
     external: true
-#networks:
-#  default:
-#    driver: bridge
-#    ipam:
-#      driver: default
-#      config:
-#        - subnet: 172.19.0.0/16
-
