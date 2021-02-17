@@ -20,14 +20,14 @@ services:
     env_file:
       - config.env
     environment:
-    # Make sure this is the same as the main=-domain in traefik.toml
-    # !!! Also don’t forget to add "TRAEFIK_DOMAIN=[...]" to your .env!
+      # Make sure this is the same as the main=-domain in traefik.toml
+      # !!! Also don’t forget to add "TRAEFIK_DOMAIN=[...]" to your .env!
       - DOMAIN=${DOMAINNAME}
       - TRAEFIK_VERSION=v2
     volumes:
-    # Folder, which contains the acme.json
+      # Folder, which contains the acme.json
       - "${TRAEFIK_ACME_DIR}:/traefik"
-    # Folder, where cert.pem and key.pem will be written
+      # Folder, where cert.pem and key.pem will be written
       - "${VOLUMES_DIR}/mailu/certs:/output"
 
   # Core services
@@ -123,16 +123,11 @@ services:
 networks:
   mailu:
     name: mailu
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/16
   traefik:
     name: traefik
     external: true
-
-
-#networks:
-#  default:
-#    driver: bridge
-#    ipam:
-#      driver: default
-#      config:
-#        - subnet: 172.19.0.0/16
-
