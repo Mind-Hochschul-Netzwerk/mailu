@@ -13,7 +13,7 @@ services:
       - "${VOLUMES_DIR}/mailu/redis:/data"
     networks:
       - mailu
-    
+
   certdumper:
     image: mailu/traefik-certdumper:${MAILU_VERSION:-master}
     restart: unless-stopped
@@ -75,7 +75,7 @@ services:
       - "${VOLUMES_DIR}/mailu/dkim:/dkim"
     depends_on:
       - redis
-    networks:  
+    networks:
       - mailu
 
   imap:
@@ -89,7 +89,7 @@ services:
       - "${VOLUMES_DIR}/mailu/overrides:/overrides"
     depends_on:
       - front
-    networks:  
+    networks:
       - mailu
 
   smtp:
@@ -102,7 +102,7 @@ services:
       - "${VOLUMES_DIR}/mailu/overrides:/overrides"
     depends_on:
       - front
-    networks:  
+    networks:
       - mailu
 
   antispam:
@@ -117,7 +117,7 @@ services:
       - "${VOLUMES_DIR}/mailu/overrides/rspamd:/etc/rspamd/override.d"
     depends_on:
       - front
-    networks:  
+    networks:
       - mailu
 
 networks:
@@ -127,7 +127,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.19.0.0/16
+        - subnet: ${mailu_subnet}
   traefik:
     name: traefik
     external: true
