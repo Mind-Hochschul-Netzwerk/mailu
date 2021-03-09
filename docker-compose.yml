@@ -56,8 +56,8 @@ services:
       - traefik.http.routers.mailu.rule=Host(`mailu.${DOMAINNAME}`) || Host(`imap.${DOMAINNAME}`) || Host(`smtp.${DOMAINNAME}`)
       - traefik.http.routers.mailu.tls=true
       - traefik.http.routers.mailu.tls.certresolver=myresolver
-      # - traefik.http.routers.mailu.tls.domains[0].main=${DOMAINNAME}
-      # - traefik.http.routers.mailu.tls.domains[0].sans=*.${DOMAINNAME}
+      - traefik.http.routers.mailu.tls.domains[0].main=${DOMAINNAME}
+      - traefik.http.routers.mailu.tls.domains[0].sans=imap.${DOMAINNAME},smtp.${DOMAINNAME}
       - traefik.http.routers.mailu.middlewares=secheader
       - traefik.http.services.mailu.loadbalancer.server.port=80
     networks:
