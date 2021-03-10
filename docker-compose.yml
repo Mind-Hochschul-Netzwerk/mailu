@@ -58,7 +58,7 @@ services:
       - traefik.http.routers.mailu.tls.certresolver=myresolver
       - traefik.http.routers.mailu.tls.domains[0].main=${DOMAINNAME}
       - traefik.http.routers.mailu.tls.domains[0].sans=imap.${DOMAINNAME},smtp.${DOMAINNAME}
-      - traefik.http.routers.mailu.middlewares=secheader
+      - traefik.http.routers.mailu.middlewares=secheader@file
       - traefik.http.services.mailu.loadbalancer.server.port=80
     networks:
       - traefik
@@ -127,7 +127,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.19.0.0/16
+        - subnet: ${mailu_subnet}
   traefik:
     name: traefik
     external: true
