@@ -28,7 +28,7 @@ services:
       # Folder, which contains the acme.json
       - "${TRAEFIK_ACME_DIR}:/traefik"
       # Folder, where cert.pem and key.pem will be written
-      - "${VOLUMES_DIR}/mailu/certs:/output"
+      - "${VOLUMES_DIR}/certs:/output"
 
   # Core services
   front:
@@ -48,8 +48,8 @@ services:
       - "0.0.0.0:143:143"
       - "0.0.0.0:993:993"
     volumes:
-      - "${VOLUMES_DIR}/mailu/certs:/certs"
-      - "${VOLUMES_DIR}/mailu/overrides/nginx:/overrides"
+      - "${VOLUMES_DIR}/certs:/certs"
+      - "${VOLUMES_DIR}/overrides/nginx:/overrides"
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik
@@ -85,8 +85,8 @@ services:
       - mailu.env
       - config.env
     volumes:
-      - "${VOLUMES_DIR}/mailu/mail:/mail"
-      - "${VOLUMES_DIR}/mailu/overrides:/overrides"
+      - "${VOLUMES_DIR}/mail:/mail"
+      - "${VOLUMES_DIR}/overrides:/overrides"
     depends_on:
       - front
     networks:
@@ -99,7 +99,7 @@ services:
       - mailu.env
       - config.env
     volumes:
-      - "${VOLUMES_DIR}/mailu/overrides:/overrides"
+      - "${VOLUMES_DIR}/overrides:/overrides"
     depends_on:
       - front
     networks:
@@ -112,9 +112,9 @@ services:
       - mailu.env
       - config.env
     volumes:
-      - "${VOLUMES_DIR}/mailu/filter:/var/lib/rspamd"
-      - "${VOLUMES_DIR}/mailu/dkim:/dkim"
-      - "${VOLUMES_DIR}/mailu/overrides/rspamd:/etc/rspamd/override.d"
+      - "${VOLUMES_DIR}/filter:/var/lib/rspamd"
+      - "${VOLUMES_DIR}/dkim:/dkim"
+      - "${VOLUMES_DIR}/overrides/rspamd:/etc/rspamd/override.d"
     depends_on:
       - front
     networks:
