@@ -53,10 +53,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik
-      - traefik.http.routers.mailu.rule=Host(`mailu.${DOMAINNAME}`) || Host(`imap.${DOMAINNAME}`) || Host(`smtp.${DOMAINNAME}`)
+      - traefik.http.routers.mailu.rule=Host(`mailu.${DOMAINNAME}`)
       - traefik.http.routers.mailu.tls=true
       - traefik.http.routers.mailu.tls.certresolver=myresolver
-      - traefik.http.routers.mailu.tls.domains[0].main=${DOMAINNAME}
+      - traefik.http.routers.mailu.tls.domains[0].main=mailu.${DOMAINNAME}
       - traefik.http.routers.mailu.tls.domains[0].sans=imap.${DOMAINNAME},smtp.${DOMAINNAME}
       - traefik.http.routers.mailu.middlewares=secheader@file
       - traefik.http.services.mailu.loadbalancer.server.port=80
