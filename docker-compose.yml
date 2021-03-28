@@ -10,7 +10,7 @@ services:
     image: redis:alpine
     restart: unless-stopped
     volumes:
-      - "${VOLUMES_DIR}/mailu/redis:/data"
+      - "${VOLUMES_DIR}/redis:/data"
     networks:
       - mailu
 
@@ -21,7 +21,6 @@ services:
       - config.env
     environment:
       # Make sure this is the same as the main=-domain in traefik.toml
-      # !!! Also don’t forget to add "TRAEFIK_DOMAIN=[...]" to your .env!
       - DOMAIN=${DOMAINNAME}
       - TRAEFIK_VERSION=v2
     volumes:
@@ -71,8 +70,8 @@ services:
       - mailu.env
       - config.env
     volumes:
-      - "${VOLUMES_DIR}/mailu/data:/data"
-      - "${VOLUMES_DIR}/mailu/dkim:/dkim"
+      - "${VOLUMES_DIR}/data:/data"
+      - "${VOLUMES_DIR}/dkim:/dkim"
     depends_on:
       - redis
     networks:
