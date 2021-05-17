@@ -18,10 +18,10 @@ services:
     image: mailu/traefik-certdumper:${MAILU_VERSION:-master}
     restart: unless-stopped
     env_file:
-      - config.env
+      - mailu.env
     environment:
       # Make sure this is the same as the main=-domain in traefik.toml
-      - DOMAIN=${DOMAINNAME}
+      - DOMAIN=mailu.${DOMAINNAME}
       - TRAEFIK_VERSION=v2
     volumes:
       # Folder, which contains the acme.json
@@ -35,7 +35,6 @@ services:
     restart: unless-stopped
     env_file:
       - mailu.env
-      - config.env
     logging:
       driver: json-file
     ports:
@@ -68,7 +67,6 @@ services:
     restart: unless-stopped
     env_file:
       - mailu.env
-      - config.env
     volumes:
       - "${VOLUMES_DIR}/data:/data"
       - "${VOLUMES_DIR}/dkim:/dkim"
@@ -82,7 +80,6 @@ services:
     restart: unless-stopped
     env_file:
       - mailu.env
-      - config.env
     volumes:
       - "${VOLUMES_DIR}/mail:/mail"
       - "${VOLUMES_DIR}/overrides:/overrides"
@@ -96,7 +93,6 @@ services:
     restart: unless-stopped
     env_file:
       - mailu.env
-      - config.env
     volumes:
       - "${VOLUMES_DIR}/overrides:/overrides"
     depends_on:
@@ -109,7 +105,6 @@ services:
     restart: unless-stopped
     env_file:
       - mailu.env
-      - config.env
     volumes:
       - "${VOLUMES_DIR}/filter:/var/lib/rspamd"
       - "${VOLUMES_DIR}/dkim:/dkim"
@@ -118,6 +113,28 @@ services:
       - front
     networks:
       - mailu
+
+  # Optional services
+  antivirus:
+    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}clamav:${MAILU_VERSION:-}
+    restart: always
+    env_file: mailu.env
+    networks:
+      - mailu
+    volumes:
+      - "${VOLUMES_DIR}/filter:/data"
+
+  # Webmail
+  webmail:
+    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}roundcube:${MAILU_VERSION:-}
+    restart: always
+    env_file: mailu.env
+    networks:
+      - mailu
+    volumes:
+      - "${VOLUMES_DIR}/webmail:/data"
+    depends_on:
+      - imap
 
 networks:
   mailu:
