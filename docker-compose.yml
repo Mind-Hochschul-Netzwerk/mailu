@@ -21,7 +21,7 @@ services:
       - mailu.env
     environment:
       # Make sure this is the same as the main=-domain in traefik.toml
-      - DOMAIN=${DOMAINNAME}
+      - DOMAIN=*${DOMAINNAME}
       - TRAEFIK_VERSION=v2
     volumes:
       # Folder, which contains the acme.json
@@ -52,10 +52,6 @@ services:
       - traefik.enable=true
       - traefik.docker.network=traefik
       - traefik.http.routers.mailu.rule=Host(`mailu.${DOMAINNAME}`)
-      - traefik.http.routers.mailu.tls=true
-      - traefik.http.routers.mailu.tls.certresolver=myresolver
-      - traefik.http.routers.mailu.tls.domains[0].main=${DOMAINNAME}
-      - traefik.http.routers.mailu.tls.domains[0].sans=imap.${DOMAINNAME},smtp.${DOMAINNAME},mailu.${DOMAINNAME}
       - traefik.http.routers.mailu.middlewares=secheader@file
       - traefik.http.services.mailu.loadbalancer.server.port=80
     networks:
