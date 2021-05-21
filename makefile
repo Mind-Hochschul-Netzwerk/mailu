@@ -3,4 +3,4 @@
 
 prod: .env
 	@echo "Starting prod Server"
-	docker-compose up -d --force-recreate
+	docker-compose up -d --force-recreate --remove-orphans
