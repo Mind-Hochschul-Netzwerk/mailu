@@ -36,7 +36,9 @@ services:
     env_file:
       - mailu.env
     logging:
-      driver: json-file
+      driver: journald
+      options:
+        tag: mailu-front
     ports:
       - "0.0.0.0:25:25"
       - "0.0.0.0:465:465"
@@ -63,6 +65,10 @@ services:
     restart: unless-stopped
     env_file:
       - mailu.env
+    logging:
+      driver: journald
+      options:
+        tag: mailu-admin
     volumes:
       - "${VOLUMES_DIR}/data:/data"
       - "${VOLUMES_DIR}/dkim:/dkim"
