@@ -2,21 +2,21 @@
 # Please read the documentation before attempting any change.
 # Generated for compose flavor
 
-version: "3.5"
-
 services:
   # External dependencies
   redis:
     image: redis:alpine
-    restart: unless-stopped
+    restart: always
     volumes:
       - "${VOLUMES_DIR}/redis:/data"
-    networks:
-      - mailu
+    depends_on:
+      - resolver
+    dns:
+     - ${RESOLVER_IP}
 
   certdumper:
     image: mailu/traefik-certdumper:master
-    restart: unless-stopped
+    restart: always
     env_file:
       - mailu.env
     environment:
@@ -31,40 +31,52 @@ services:
 
   # Core services
   front:
-    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}nginx:${MAILU_VERSION}
-    restart: unless-stopped
-    env_file:
-      - mailu.env
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}nginx:${MAILU_VERSION:-2.0}
+    restart: always
+    env_file: mailu.env
     logging:
       driver: journald
       options:
         tag: mailu-front
     ports:
-      - "0.0.0.0:25:25"
-      - "0.0.0.0:465:465"
-      - "0.0.0.0:587:587"
-      - "0.0.0.0:110:110"
-      - "0.0.0.0:995:995"
-      - "0.0.0.0:143:143"
-      - "0.0.0.0:993:993"
+      - "${SERVER_IPV4}:25:25"
+      - "${SERVER_IPV4}:465:465"
+      - "${SERVER_IPV4}:587:587"
+      - "${SERVER_IPV4}:110:110"
+      - "${SERVER_IPV4}:995:995"
+      - "${SERVER_IPV4}:143:143"
+      - "${SERVER_IPV4}:993:993"
     volumes:
       - "${VOLUMES_DIR}/certs:/certs"
       - "${VOLUMES_DIR}/overrides/nginx:/overrides"
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik
-      - traefik.http.routers.mailu.rule=Host(`mailu.${DOMAINNAME}`)
-      - traefik.http.routers.mailu.middlewares=secheader@file
-      - traefik.http.services.mailu.loadbalancer.server.port=80
+      - traefik.http.routers.${SERVICENAME}.rule=Host(`mailu.${DOMAINNAME}`)
+      - traefik.http.routers.${SERVICENAME}.rule=HostRegexp(`mailu.{any:.+}`) || HostRegexp(`mail.{any:.+}`) || HostRegexp(`autoconfig.{any:.+}`)
+      - traefik.http.routers.${SERVICENAME}.middlewares=secheader@file
+      - traefik.http.services.${SERVICENAME}.loadbalancer.server.port=80
     networks:
+      - default
+      - webmail
       - traefik
-      - mailu
+    depends_on:
+      - resolver
+    dns:
+      - ${RESOLVER_IP}
+
+  resolver:
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}unbound:${MAILU_VERSION:-2.0}
+    env_file: mailu.env
+    restart: always
+    networks:
+      default:
+        ipv4_address: ${RESOLVER_IP}
 
   admin:
-    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}admin:${MAILU_VERSION}
-    restart: unless-stopped
-    env_file:
-      - mailu.env
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}admin:${MAILU_VERSION:-2.0}
+    restart: always
+    env_file: mailu.env
     logging:
       driver: journald
       options:
@@ -74,78 +86,120 @@ services:
       - "${VOLUMES_DIR}/dkim:/dkim"
     depends_on:
       - redis
-    networks:
-      - mailu
+      - resolver
+    dns:
+      - ${RESOLVER_IP}
 
   imap:
-    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}dovecot:${MAILU_VERSION}
-    restart: unless-stopped
-    env_file:
-      - mailu.env
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}dovecot:${MAILU_VERSION:-2.0}
+    restart: always
+    env_file: mailu.env
+    logging:
+      driver: journald
+      options:
+        tag: mailu-imap
     volumes:
       - "${VOLUMES_DIR}/mail:/mail"
       - "${VOLUMES_DIR}/overrides:/overrides"
     depends_on:
       - front
-    networks:
-      - mailu
+      - resolver
+    dns:
+      - ${RESOLVER_IP}
 
   smtp:
-    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}postfix:${MAILU_VERSION}
-    restart: unless-stopped
-    env_file:
-      - mailu.env
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}postfix:${MAILU_VERSION:-2.0}
+    restart: always
+    env_file: mailu.env
+    logging:
+      driver: journald
+      options:
+        tag: mailu-smtp
     volumes:
-      - "${VOLUMES_DIR}/overrides:/overrides"
+      - "${VOLUMES_DIR}/mailqueue:/queue"
+      - "${VOLUMES_DIR}/overrides/postfix:/overrides:ro"
     depends_on:
       - front
+      - resolver
+    dns:
+      - ${RESOLVER_IP}
+
+  oletools:
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}oletools:${MAILU_VERSION:-2.0}
+    hostname: oletools
+    restart: always
     networks:
-      - mailu
+      - noinet
+    depends_on:
+      - resolver
+    dns:
+      - ${RESOLVER_IP}
 
   antispam:
-    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}rspamd:${MAILU_VERSION}
-    restart: unless-stopped
-    env_file:
-      - mailu.env
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}rspamd:${MAILU_VERSION:-2.0}
+    hostname: antispam
+    restart: always
+    env_file: mailu.env
+    logging:
+      driver: journald
+      options:
+        tag: mailu-antispam
+    networks:
+      - default
+      - noinet
     volumes:
       - "${VOLUMES_DIR}/filter:/var/lib/rspamd"
-      - "${VOLUMES_DIR}/dkim:/dkim"
-      - "${VOLUMES_DIR}/overrides/rspamd:/etc/rspamd/override.d"
+      - "${VOLUMES_DIR}/overrides/rspamd:/overrides:ro"
     depends_on:
       - front
-    networks:
-      - mailu
+      - redis
+      - oletools
+      - resolver
+    dns:
+      - ${RESOLVER_IP}
+
+#    volumes:
+#      - "${VOLUMES_DIR}/filter:/var/lib/rspamd"
+#      - "${VOLUMES_DIR}/dkim:/dkim"
+#      - "${VOLUMES_DIR}/overrides/rspamd:/etc/rspamd/override.d"
 
   # Optional services
   antivirus:
-    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}clamav:${MAILU_VERSION}
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}clamav:${MAILU_VERSION:-2.0}
     restart: always
     env_file: mailu.env
-    networks:
-      - mailu
     volumes:
       - "${VOLUMES_DIR}/filter:/data"
+    depends_on:
+      - resolver
+    dns:
+      - ${RESOLVER_IP}
 
   # Webmail
   webmail:
-    image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}roundcube:${MAILU_VERSION}
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}webmail:${MAILU_VERSION:-2.0}
     restart: always
     env_file: mailu.env
-    networks:
-      - mailu
     volumes:
       - "${VOLUMES_DIR}/webmail:/data"
+      - "${VOLUMES_DIR}/overrides/roundcube:/overrides:ro"
+    networks:
+      - webmail
     depends_on:
-      - imap
+      - front
 
 networks:
-  mailu:
-    name: mailu
+  default:
     driver: bridge
     ipam:
       driver: default
       config:
-        - subnet: ${mailu_subnet}
+        - subnet: ${MAILU_SUBNET}
+  webmail:
+    driver: bridge
+  noinet:
+    driver: bridge
+    internal: true
   traefik:
     name: traefik
     external: true
