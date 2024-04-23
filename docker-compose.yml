@@ -15,7 +15,7 @@ services:
      - ${RESOLVER_IP}
 
   certdumper:
-    image: mailu/traefik-certdumper:master
+    image: ${DOCKER_ORG:-ghcr.io/mailu}/traefik-certdumper:master
     restart: always
     env_file:
       - mailu.env
