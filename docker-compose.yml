@@ -21,7 +21,7 @@ services:
       - mailu.env
     environment:
       # Make sure this is the same as the main=-domain in traefik.toml
-      - DOMAIN=*${DOMAINNAME}
+      - DOMAIN=${DOMAINNAME}
       - TRAEFIK_VERSION=v2
     volumes:
       # Folder, which contains the acme.json
