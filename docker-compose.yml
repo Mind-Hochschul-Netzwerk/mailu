@@ -22,7 +22,7 @@ services:
     environment:
       # Make sure this is the same as the main=-domain in traefik.toml
       - DOMAIN=${DOMAINNAME}
-      - TRAEFIK_VERSION=v2
+      - TRAEFIK_VERSION=v3
     volumes:
       # Folder, which contains the acme.json
       - "${TRAEFIK_ACME_DIR}:/traefik"
@@ -51,8 +51,7 @@ services:
       - "${VOLUMES_DIR}/overrides/nginx:/overrides"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.${SERVICENAME}.rule=Host(`mailu.${DOMAINNAME}`)
-      - traefik.http.routers.${SERVICENAME}.rule=HostRegexp(`mailu.{any:.+}`) || HostRegexp(`mail.{any:.+}`) || HostRegexp(`autoconfig.{any:.+}`)
+      - traefik.http.routers.${SERVICENAME}.rule=Host(`${SERVICENAME}.${DOMAINNAME}`) || HostRegexp(`^mailu\.`) || HostRegexp(`^mail\.`) || HostRegexp(`^autoconfig\.`)
       - traefik.http.routers.${SERVICENAME}.middlewares=secheader@file
       - traefik.http.services.${SERVICENAME}.loadbalancer.server.port=80
     networks:
