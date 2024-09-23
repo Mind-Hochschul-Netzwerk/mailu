@@ -51,7 +51,6 @@ services:
       - "${VOLUMES_DIR}/overrides/nginx:/overrides"
     labels:
       - traefik.enable=true
-      - traefik.docker.network=traefik
       - traefik.http.routers.${SERVICENAME}.rule=Host(`mailu.${DOMAINNAME}`)
       - traefik.http.routers.${SERVICENAME}.rule=HostRegexp(`mailu.{any:.+}`) || HostRegexp(`mail.{any:.+}`) || HostRegexp(`autoconfig.{any:.+}`)
       - traefik.http.routers.${SERVICENAME}.middlewares=secheader@file
