@@ -22,7 +22,8 @@ services:
     environment:
       # Make sure this is the same as the main=-domain in traefik.toml
       - DOMAIN=${DOMAINNAME}
-      - TRAEFIK_VERSION=v3
+      # v2 even with traefik 3, see https://github.com/ldez/traefik-certs-dumper/issues/205
+      - TRAEFIK_VERSION=v2
     volumes:
       # Folder, which contains the acme.json
       - "${TRAEFIK_ACME_DIR}:/traefik"
