@@ -15,3 +15,7 @@ Go to [https://mailu.docker.localhost/admin/](https://mailu.docker.localhost/adm
 
     email: admin@docker.localhost
     password: secret
+
+## spam rules
+
+Spam rules can be modified at `${VOLUMES_DIR}/overrides/rspamd/regexp.conf`
