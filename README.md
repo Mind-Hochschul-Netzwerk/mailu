@@ -23,9 +23,3 @@ Spam rules can be modified at `${VOLUMES_DIR}/overrides/rspamd/regexp.conf`
 ## Regelmäßige Bereinigung deaktivierter Benutzer
 
 * Das Skript `purge_user.sh` erzeugt Shell-Befehle für das Löschen deaktivierter Mailu-Benutzer, Maildirs, Roundcube-Daten und Datenbankeinträge.
-* Beispielhafter Cron-Eintrag zum Erzeugen und direkten Ausführen der Löschbefehle (wöchentlich Sonntag 03:00 Uhr):
-```
-0 3 * * 0 cd /opt/mailu && ./scripts/purge_user.sh | sh >> /var/log/mailu/purge_user.log 2>&1
-```
-* Der Pfad muss an den Installationsort des Mailu-Projekts angepasst werden.
-
