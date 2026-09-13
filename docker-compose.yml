@@ -53,7 +53,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.${SERVICENAME}.rule=Host(`${SERVICENAME}.${DOMAINNAME}`) || HostRegexp(`^mailu\.`) || HostRegexp(`^mail\.`) || HostRegexp(`^autoconfig\.`)
-      - traefik.http.routers.${SERVICENAME}.middlewares=secheader@file
+      - traefik.http.routers.${SERVICENAME}.middlewares=forwardauth@file
       - traefik.http.services.${SERVICENAME}.loadbalancer.server.port=80
     networks:
       - default
