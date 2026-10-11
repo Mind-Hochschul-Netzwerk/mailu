@@ -52,8 +52,21 @@ services:
       - "${VOLUMES_DIR}/overrides/nginx:/overrides"
     labels:
       - traefik.enable=true
+
       - traefik.http.routers.${SERVICENAME}.rule=Host(`${SERVICENAME}.${DOMAINNAME}`) || HostRegexp(`^mailu\.`) || HostRegexp(`^mail\.`) || HostRegexp(`^autoconfig\.`)
-      - traefik.http.routers.${SERVICENAME}.middlewares=forwardauth@file
+      - traefik.http.routers.${SERVICENAME}.middlewares=default@file
+      - traefik.http.routers.${SERVICENAME}.priority=100
+      - traefik.http.routers.${SERVICENAME}.service=${SERVICENAME}
+
+      - traefik.http.routers.mailbox-selector.rule=(Host(`${SERVICENAME}.${DOMAINNAME}`) || HostRegexp(`^mailu\.`) || HostRegexp(`^mail\.`)) && PathPrefix(`/sso/`)
+      - traefik.http.routers.mailbox-selector.middlewares=stripremoteauth@file,authelia@docker,mailbox-selector@docker,secheader@file
+      - traefik.http.routers.mailbox-selector.priority=200
+      - traefik.http.routers.mailbox-selector.service=${SERVICENAME}
+
+      - traefik.http.middlewares.mailbox-selector.forwardauth.addAuthCookiesToResponse=mailbox-token
+      - traefik.http.middlewares.mailbox-selector.forwardauth.address=http://mitglieder:8080/mailu-login.php
+      - traefik.http.middlewares.mailbox-selector.forwardauth.authResponseHeaders=Remote-Email
+
       - traefik.http.services.${SERVICENAME}.loadbalancer.server.port=80
     networks:
       - default
